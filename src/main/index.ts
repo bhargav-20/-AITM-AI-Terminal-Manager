@@ -12,6 +12,8 @@ import {
   type UtilityProcess,
 } from 'electron'
 import { IPC, type SpawnTerminalRequest, type SpawnTerminalResult } from '../shared/ipc'
+import { CLAUDE_IPC } from '../shared/claude'
+import { claudeService } from './services/claude/service'
 
 let mainWindow: BrowserWindow | null = null
 let ptyHost: UtilityProcess | null = null
@@ -142,6 +144,8 @@ ipcMain.handle('app:openExternal', async (_e, url: string) => {
   await shell.openExternal(url)
 })
 
+ipcMain.handle(CLAUDE_IPC.getSnapshot, () => claudeService.snapshot())
+
 // Resolve whether a command (e.g. "claude") is on the user's interactive-login
 // PATH, so the UI can warn when New Claude would fail. Returns the resolved path
 // or null. The token is restricted to a safe charset before being shell-evaluated.
@@ -165,8 +169,13 @@ app.whenReady().then(() => {
   buildMenu()
   startPtyHost()
   createWindow()
+  if (mainWindow) claudeService.setWindow(mainWindow)
+  void claudeService.start()
   app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) createWindow()
+    if (BrowserWindow.getAllWindows().length === 0) {
+      createWindow()
+      if (mainWindow) claudeService.setWindow(mainWindow)
+    }
   })
 })
 

@@ -15,6 +15,7 @@ if (!('atm' in window)) {
     openExternal: async () => undefined,
     resolveCommand: async () => null,
     onMenuAction: () => undefined,
+    claude: { getSnapshot: async () => [], onSnapshot: () => () => undefined },
   }
 }
 

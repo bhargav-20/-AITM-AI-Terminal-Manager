@@ -1,5 +1,6 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import { IPC, type SpawnTerminalRequest } from '../shared/ipc'
+import { CLAUDE_IPC, type ClaudeSession } from '../shared/claude'
 
 const MENU_CHANNELS = [
   'menu:newTerminal',
@@ -16,6 +17,14 @@ const api = {
   resolveCommand: (token: string) => ipcRenderer.invoke('app:resolveCommand', token),
   onMenuAction: (cb: (action: string) => void): void => {
     for (const ch of MENU_CHANNELS) ipcRenderer.on(ch, () => cb(ch))
+  },
+  claude: {
+    getSnapshot: (): Promise<ClaudeSession[]> => ipcRenderer.invoke(CLAUDE_IPC.getSnapshot),
+    onSnapshot: (cb: (sessions: ClaudeSession[]) => void): (() => void) => {
+      const listener = (_e: unknown, sessions: ClaudeSession[]): void => cb(sessions)
+      ipcRenderer.on(CLAUDE_IPC.snapshot, listener)
+      return () => ipcRenderer.removeListener(CLAUDE_IPC.snapshot, listener)
+    },
   },
 }
 

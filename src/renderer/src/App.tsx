@@ -10,6 +10,7 @@ import { GearIcon } from './ui/icons'
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts'
 import { applyTheme } from './theme/applyTheme'
 import { useStore } from './state/store'
+import { useClaudeStore } from './state/claudeStore'
 import { spawnSession, spawnClaudeSession, closeActiveSession } from './commands/sessions'
 
 export function App(): React.JSX.Element {
@@ -25,6 +26,13 @@ export function App(): React.JSX.Element {
   useEffect(() => {
     applyTheme(themeId, accent, fontSize)
   }, [themeId, accent, fontSize])
+
+  // Live Claude session awareness: hydrate, then subscribe to pushed snapshots.
+  useEffect(() => {
+    const setSessions = useClaudeStore.getState().setSessions
+    window.atm.claude.getSnapshot().then(setSessions).catch(() => undefined)
+    return window.atm.claude.onSnapshot(setSessions)
+  }, [])
 
   useEffect(() => {
     window.atm.onMenuAction((action) => {

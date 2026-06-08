@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useStore, type SessionMeta } from '../state/store'
 import { spawnSession, spawnClaudeSession, focusSession } from '../commands/sessions'
+import { ClaudeSessions } from './ClaudeSessions'
 import { sessionMenuItems } from '../commands/menus'
 import { openContextMenu, type MenuItem } from '../ui/contextMenuBus'
 import { ACCENTS } from '../theme/themes'
@@ -89,6 +90,7 @@ export function Sidebar(): React.JSX.Element {
       </div>
 
       <div className="sidebar__groups">
+        <ClaudeSessions />
         {groupOrder.map((gid) => {
           const g = groups[gid]
           if (!g) return null
