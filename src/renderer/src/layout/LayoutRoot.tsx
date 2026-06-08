@@ -1,13 +1,14 @@
 import { DockviewReact, type DockviewReadyEvent, themeAbyss } from 'dockview'
 import 'dockview/dist/styles/dockview.css'
 import { TerminalPanel } from './TerminalPanel'
+import { DiffPanel } from '../diff/DiffPanel'
 import { CustomTab } from './CustomTab'
 import { setDockApi } from './dockApi'
 import { useStore } from '../state/store'
 import { cleanupSession, spawnSession } from '../commands/sessions'
 import { persistLayout, loadLayout } from './persistence'
 
-const components = { terminal: TerminalPanel }
+const components = { terminal: TerminalPanel, diff: DiffPanel }
 const tabComponents = { custom: CustomTab }
 
 export function LayoutRoot(): React.JSX.Element {

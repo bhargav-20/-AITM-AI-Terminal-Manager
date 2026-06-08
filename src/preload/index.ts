@@ -1,6 +1,7 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import { IPC, type SpawnTerminalRequest } from '../shared/ipc'
 import { CLAUDE_IPC, type ClaudeSession } from '../shared/claude'
+import { GIT_IPC, type GitDiffResult, type OpenResult } from '../shared/git'
 
 const MENU_CHANNELS = [
   'menu:newTerminal',
@@ -25,6 +26,11 @@ const api = {
       ipcRenderer.on(CLAUDE_IPC.snapshot, listener)
       return () => ipcRenderer.removeListener(CLAUDE_IPC.snapshot, listener)
     },
+  },
+  git: {
+    diff: (cwd: string): Promise<GitDiffResult> => ipcRenderer.invoke(GIT_IPC.diff, cwd),
+    openInVSCode: (cwd: string): Promise<OpenResult> =>
+      ipcRenderer.invoke(GIT_IPC.openInVSCode, cwd),
   },
 }
 

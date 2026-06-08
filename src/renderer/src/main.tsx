@@ -16,6 +16,10 @@ if (!('atm' in window)) {
     resolveCommand: async () => null,
     onMenuAction: () => undefined,
     claude: { getSnapshot: async () => [], onSnapshot: () => () => undefined },
+    git: {
+      diff: async () => ({ isRepo: false, diff: '', changedFiles: 0, untracked: [] }),
+      openInVSCode: async () => ({ ok: false }),
+    },
   }
 }
 

@@ -1,5 +1,6 @@
 import { useStore } from '../state/store'
 import { closeSession } from './sessions'
+import { openDiff } from './diff'
 import type { MenuItem } from '../ui/contextMenuBus'
 
 /** Context-menu items for a session (shared by dockview tabs and sidebar rows). */
@@ -13,6 +14,10 @@ export function sessionMenuItems(id: string): MenuItem[] {
     {
       label: s.pinned ? 'Unpin' : 'Pin',
       onClick: () => useStore.getState().togglePin(id),
+    },
+    {
+      label: 'Open diff',
+      onClick: () => openDiff(s.cwd, s.title),
     },
     {
       label: 'Close',

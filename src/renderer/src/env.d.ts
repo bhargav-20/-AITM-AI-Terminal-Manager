@@ -1,6 +1,7 @@
 /// <reference types="vite/client" />
 import type { SpawnTerminalRequest, SpawnTerminalResult } from '@shared/ipc'
 import type { ClaudeSession } from '@shared/claude'
+import type { GitDiffResult, OpenResult } from '@shared/git'
 
 declare global {
   interface Window {
@@ -13,6 +14,10 @@ declare global {
       claude: {
         getSnapshot(): Promise<ClaudeSession[]>
         onSnapshot(cb: (sessions: ClaudeSession[]) => void): () => void
+      }
+      git: {
+        diff(cwd: string): Promise<GitDiffResult>
+        openInVSCode(cwd: string): Promise<OpenResult>
       }
     }
   }

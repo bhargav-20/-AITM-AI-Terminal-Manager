@@ -1,6 +1,8 @@
 import { useClaudeStore } from '../state/claudeStore'
 import { useStore } from '../state/store'
 import { metricLabel } from './sessionMetric'
+import { openDiff } from '../commands/diff'
+import { DiffIcon } from '../ui/icons'
 import type { ClaudeStatus } from '@shared/claude'
 
 const STATUS_COLOR: Record<ClaudeStatus, string> = {
@@ -56,6 +58,16 @@ export function ClaudeSessions(): React.JSX.Element | null {
               </span>
             )}
           </div>
+          <button
+            className="csess__diff"
+            title="Show git diff"
+            onClick={(e) => {
+              e.stopPropagation()
+              openDiff(s.cwd, s.title || undefined)
+            }}
+          >
+            <DiffIcon size={13} />
+          </button>
         </div>
       ))}
     </div>

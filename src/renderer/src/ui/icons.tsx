@@ -52,6 +52,14 @@ export const SparkIcon = ({ size = 13, className }: IconProps): React.JSX.Elemen
   </svg>
 )
 
+export const DiffIcon = ({ size = 13, className }: IconProps): React.JSX.Element => (
+  <svg {...base(size)} className={className}>
+    <path d="M4 2v5M4 11v3M2.5 4.5h3M11 8h3M12.5 6.5v3" />
+    <circle cx="4" cy="9" r="1.6" />
+    <circle cx="12" cy="13" r="1.6" />
+  </svg>
+)
+
 export const GearIcon = ({ size = 14, className }: IconProps): React.JSX.Element => (
   <svg {...base(size)} className={className}>
     <circle cx="8" cy="8" r="2.3" />
