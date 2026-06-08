@@ -1,0 +1,155 @@
+import { join } from 'path'
+import {
+  app,
+  BrowserWindow,
+  ipcMain,
+  Menu,
+  shell,
+  utilityProcess,
+  MessageChannelMain,
+  type MenuItemConstructorOptions,
+  type UtilityProcess,
+} from 'electron'
+import { IPC, type SpawnTerminalRequest, type SpawnTerminalResult } from '../shared/ipc'
+
+let mainWindow: BrowserWindow | null = null
+let ptyHost: UtilityProcess | null = null
+
+const pendingSpawns = new Map<string, (result: SpawnTerminalResult) => void>()
+
+function startPtyHost(): void {
+  ptyHost = utilityProcess.fork(join(__dirname, 'pty-host.js'), [], {
+    serviceName: 'atm-pty-host',
+    stdio: 'pipe',
+  })
+  ptyHost.stdout?.on('data', (d) => console.log('[pty-host]', d.toString().trimEnd()))
+  ptyHost.stderr?.on('data', (d) => console.error('[pty-host]', d.toString().trimEnd()))
+  ptyHost.on('message', (msg: { type: string; terminalId: string; pid?: number; error?: string }) => {
+    if (msg.type === 'spawned') {
+      pendingSpawns.get(msg.terminalId)?.({ terminalId: msg.terminalId, pid: msg.pid! })
+      pendingSpawns.delete(msg.terminalId)
+    } else if (msg.type === 'spawn-error') {
+      console.error('[pty-host] spawn error', msg.error)
+      pendingSpawns.get(msg.terminalId)?.({ terminalId: msg.terminalId, pid: -1 })
+      pendingSpawns.delete(msg.terminalId)
+    }
+  })
+  ptyHost.on('exit', (code) => {
+    console.error('[pty-host] exited with code', code)
+    ptyHost = null
+  })
+}
+
+function sendMenu(action: string): void {
+  mainWindow?.webContents.send(action)
+}
+
+// Custom application menu. Critically, Cmd+W is remapped to a renderer action
+// (close the active *tab*) instead of closing the window — the renderer decides
+// whether the active terminal is pinned. Cmd+Shift+W force-closes.
+function buildMenu(): void {
+  const template: MenuItemConstructorOptions[] = [
+    { role: 'appMenu' },
+    {
+      label: 'File',
+      submenu: [
+        {
+          label: 'New Terminal',
+          accelerator: 'CmdOrCtrl+T',
+          click: () => sendMenu('menu:newTerminal'),
+        },
+        {
+          label: 'New Claude Session',
+          accelerator: 'CmdOrCtrl+Shift+T',
+          click: () => sendMenu('menu:newClaude'),
+        },
+        { type: 'separator' },
+        {
+          label: 'Close Tab',
+          accelerator: 'CmdOrCtrl+W',
+          click: () => sendMenu('menu:closeActive'),
+        },
+        {
+          label: 'Force Close Tab',
+          accelerator: 'CmdOrCtrl+Shift+W',
+          click: () => sendMenu('menu:forceCloseActive'),
+        },
+      ],
+    },
+    { role: 'editMenu' },
+    { role: 'viewMenu' },
+    { role: 'windowMenu' },
+  ]
+  Menu.setApplicationMenu(Menu.buildFromTemplate(template))
+}
+
+function createWindow(): void {
+  mainWindow = new BrowserWindow({
+    width: 1440,
+    height: 920,
+    minWidth: 800,
+    minHeight: 560,
+    show: false,
+    titleBarStyle: 'hiddenInset',
+    backgroundColor: '#0d0e12',
+    webPreferences: {
+      preload: join(__dirname, '../preload/index.js'),
+      contextIsolation: true,
+      // sandbox is left off for now so the preload port-relay works smoothly;
+      // hardened to true during Phase 1 security pass.
+      sandbox: false,
+      nodeIntegration: false,
+    },
+  })
+
+  mainWindow.on('ready-to-show', () => mainWindow?.show())
+  mainWindow.on('closed', () => {
+    mainWindow = null
+  })
+
+  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+    shell.openExternal(url)
+    return { action: 'deny' }
+  })
+
+  if (process.env['ELECTRON_RENDERER_URL']) {
+    mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL'])
+  } else {
+    mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
+  }
+}
+
+ipcMain.handle(IPC.spawnTerminal, async (_e, req: SpawnTerminalRequest): Promise<SpawnTerminalResult> => {
+  if (!ptyHost) startPtyHost()
+  if (!mainWindow) throw new Error('No window to attach terminal port to')
+
+  const { port1, port2 } = new MessageChannelMain()
+  // port1 -> pty-host (data plane producer), port2 -> renderer (consumer)
+  ptyHost!.postMessage({ type: 'spawn', req }, [port1])
+  mainWindow.webContents.postMessage(IPC.terminalPort, { terminalId: req.terminalId }, [port2])
+
+  return new Promise<SpawnTerminalResult>((resolve) => {
+    pendingSpawns.set(req.terminalId, resolve)
+  })
+})
+
+ipcMain.handle(IPC.killTerminal, async (_e, terminalId: string) => {
+  ptyHost?.postMessage({ type: 'kill', terminalId })
+})
+
+ipcMain.handle('app:openExternal', async (_e, url: string) => {
+  await shell.openExternal(url)
+})
+
+app.whenReady().then(() => {
+  buildMenu()
+  startPtyHost()
+  createWindow()
+  app.on('activate', () => {
+    if (BrowserWindow.getAllWindows().length === 0) createWindow()
+  })
+})
+
+app.on('window-all-closed', () => {
+  if (process.platform !== 'darwin') app.quit()
+})
