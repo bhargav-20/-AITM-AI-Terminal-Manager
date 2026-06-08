@@ -16,6 +16,7 @@ import { CLAUDE_IPC } from '../shared/claude'
 import { claudeService } from './services/claude/service'
 import { GIT_IPC } from '../shared/git'
 import { getDiff, openInVSCode } from './services/git'
+import { initTray, update as updateTray, setNotificationsEnabled } from './tray'
 
 let mainWindow: BrowserWindow | null = null
 let ptyHost: UtilityProcess | null = null
@@ -47,6 +48,14 @@ function startPtyHost(): void {
 
 function sendMenu(action: string): void {
   mainWindow?.webContents.send(action)
+}
+
+function focusClaudeSession(sessionId: string): void {
+  if (!mainWindow) return
+  if (mainWindow.isMinimized()) mainWindow.restore()
+  mainWindow.show()
+  mainWindow.focus()
+  mainWindow.webContents.send('claude:focusSession', sessionId)
 }
 
 // Custom application menu. Critically, Cmd+W is remapped to a renderer action
@@ -151,6 +160,8 @@ ipcMain.handle(CLAUDE_IPC.getSnapshot, () => claudeService.snapshot())
 ipcMain.handle(GIT_IPC.diff, (_e, cwd: string) => getDiff(cwd))
 ipcMain.handle(GIT_IPC.openInVSCode, (_e, cwd: string) => openInVSCode(cwd))
 
+ipcMain.handle('app:setNotifications', (_e, enabled: boolean) => setNotificationsEnabled(enabled))
+
 // Resolve whether a command (e.g. "claude") is on the user's interactive-login
 // PATH, so the UI can warn when New Claude would fail. Returns the resolved path
 // or null. The token is restricted to a safe charset before being shell-evaluated.
@@ -175,6 +186,8 @@ app.whenReady().then(() => {
   startPtyHost()
   createWindow()
   if (mainWindow) claudeService.setWindow(mainWindow)
+  initTray({ getWindow: () => mainWindow, sendMenu, focusSession: focusClaudeSession })
+  claudeService.setOnUpdate(updateTray)
   void claudeService.start()
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {

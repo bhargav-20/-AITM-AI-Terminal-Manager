@@ -52,9 +52,15 @@ export class ClaudeService {
   private watcher: FSWatcher | null = null
   private poll: ReturnType<typeof setInterval> | null = null
   private emitTimer: ReturnType<typeof setTimeout> | null = null
+  private onUpdateCb: ((sessions: ClaudeSession[]) => void) | null = null
 
   setWindow(win: BrowserWindow): void {
     this.window = win
+  }
+
+  /** Called with the full session list on every (debounced) update — drives the tray + notifications. */
+  setOnUpdate(cb: (sessions: ClaudeSession[]) => void): void {
+    this.onUpdateCb = cb
   }
 
   async start(): Promise<void> {
@@ -244,9 +250,11 @@ export class ClaudeService {
     if (this.emitTimer) return
     this.emitTimer = setTimeout(() => {
       this.emitTimer = null
+      const list = this.snapshot()
       if (this.window && !this.window.isDestroyed()) {
-        this.window.webContents.send(CLAUDE_IPC.snapshot, this.snapshot())
+        this.window.webContents.send(CLAUDE_IPC.snapshot, list)
       }
+      this.onUpdateCb?.(list)
     }, EMIT_DEBOUNCE_MS)
   }
 }

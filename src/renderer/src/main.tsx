@@ -15,7 +15,9 @@ if (!('atm' in window)) {
     killTerminal: async () => undefined,
     openExternal: async () => undefined,
     resolveCommand: async () => null,
+    setNotificationsEnabled: async () => undefined,
     onMenuAction: () => undefined,
+    onFocusSession: () => () => undefined,
     claude: { getSnapshot: async () => [], onSnapshot: () => () => undefined },
     git: {
       diff: async () => ({ isRepo: false, diff: '', changedFiles: 0, untracked: [] }),

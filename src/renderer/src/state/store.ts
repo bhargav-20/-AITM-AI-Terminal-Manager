@@ -90,6 +90,9 @@ interface AppState {
   sessionMetric: SessionMetric
   rates: RateMap
 
+  // notify when a session finishes and needs input (persisted)
+  notificationsEnabled: boolean
+
   // transient UI (not persisted)
   settingsOpen: boolean
   shortcutsOpen: boolean
@@ -114,6 +117,7 @@ interface AppState {
   setSessionMetric: (m: SessionMetric) => void
   setRate: (model: RateModel, field: keyof ModelRate, value: number) => void
   resetRates: () => void
+  setNotificationsEnabled: (v: boolean) => void
   setSettingsOpen: (open: boolean) => void
   setShortcutsOpen: (open: boolean) => void
 }
@@ -139,6 +143,7 @@ export const useStore = create<AppState>()(
       claudeCommand: DEFAULT_CLAUDE_COMMAND,
       sessionMetric: 'cost',
       rates: structuredClone(DEFAULT_RATES),
+      notificationsEnabled: true,
 
       settingsOpen: false,
       shortcutsOpen: false,
@@ -252,6 +257,7 @@ export const useStore = create<AppState>()(
           },
         })),
       resetRates: () => set({ rates: structuredClone(DEFAULT_RATES) }),
+      setNotificationsEnabled: (v) => set({ notificationsEnabled: v }),
       setSettingsOpen: (open) => set({ settingsOpen: open }),
       setShortcutsOpen: (open) => set({ shortcutsOpen: open }),
     }),
@@ -268,6 +274,7 @@ export const useStore = create<AppState>()(
         claudeCommand: st.claudeCommand,
         sessionMetric: st.sessionMetric,
         rates: st.rates,
+        notificationsEnabled: st.notificationsEnabled,
       }),
     },
   ),

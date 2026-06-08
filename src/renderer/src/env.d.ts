@@ -11,7 +11,9 @@ declare global {
       killTerminal(terminalId: string): Promise<void>
       openExternal(url: string): Promise<void>
       resolveCommand(token: string): Promise<string | null>
+      setNotificationsEnabled(enabled: boolean): Promise<void>
       onMenuAction(cb: (action: string) => void): void
+      onFocusSession(cb: (sessionId: string) => void): () => void
       claude: {
         getSnapshot(): Promise<ClaudeSession[]>
         onSnapshot(cb: (sessions: ClaudeSession[]) => void): () => void

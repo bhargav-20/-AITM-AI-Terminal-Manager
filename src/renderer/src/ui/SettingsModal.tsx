@@ -13,6 +13,8 @@ export function SettingsModal(): React.JSX.Element {
   const setFontSize = useStore((s) => s.setTerminalFontSize)
   const claudeCommand = useStore((s) => s.claudeCommand)
   const setClaudeCommand = useStore((s) => s.setClaudeCommand)
+  const notificationsEnabled = useStore((s) => s.notificationsEnabled)
+  const setNotificationsEnabled = useStore((s) => s.setNotificationsEnabled)
   const sessionMetric = useStore((s) => s.sessionMetric)
   const setSessionMetric = useStore((s) => s.setSessionMetric)
   const rates = useStore((s) => s.rates)
@@ -71,6 +73,21 @@ export function SettingsModal(): React.JSX.Element {
             +
           </button>
         </div>
+      </section>
+
+      <section className="settings__section">
+        <h4 className="settings__label">Notifications</h4>
+        <label className="switch-row">
+          <span>Notify when a session finishes and needs input</span>
+          <button
+            role="switch"
+            aria-checked={notificationsEnabled}
+            className={`switch${notificationsEnabled ? ' switch--on' : ''}`}
+            onClick={() => setNotificationsEnabled(!notificationsEnabled)}
+          >
+            <span className="switch__knob" />
+          </button>
+        </label>
       </section>
 
       <section className="settings__section">

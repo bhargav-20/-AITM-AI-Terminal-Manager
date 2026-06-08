@@ -18,8 +18,15 @@ const api = {
   killTerminal: (terminalId: string) => ipcRenderer.invoke(IPC.killTerminal, terminalId),
   openExternal: (url: string) => ipcRenderer.invoke('app:openExternal', url),
   resolveCommand: (token: string) => ipcRenderer.invoke('app:resolveCommand', token),
+  setNotificationsEnabled: (enabled: boolean) =>
+    ipcRenderer.invoke('app:setNotifications', enabled),
   onMenuAction: (cb: (action: string) => void): void => {
     for (const ch of MENU_CHANNELS) ipcRenderer.on(ch, () => cb(ch))
+  },
+  onFocusSession: (cb: (sessionId: string) => void): (() => void) => {
+    const listener = (_e: unknown, sessionId: string): void => cb(sessionId)
+    ipcRenderer.on('claude:focusSession', listener)
+    return () => ipcRenderer.removeListener('claude:focusSession', listener)
   },
   claude: {
     getSnapshot: (): Promise<ClaudeSession[]> => ipcRenderer.invoke(CLAUDE_IPC.getSnapshot),

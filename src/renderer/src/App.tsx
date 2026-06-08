@@ -12,7 +12,7 @@ import { applyTheme } from './theme/applyTheme'
 import { useStore } from './state/store'
 import { useClaudeStore } from './state/claudeStore'
 import { useCorrelationStore } from './state/correlationStore'
-import { spawnSession, spawnClaudeSession, closeActiveSession } from './commands/sessions'
+import { spawnSession, spawnClaudeSession, closeActiveSession, focusSession } from './commands/sessions'
 
 export function App(): React.JSX.Element {
   useKeyboardShortcuts()
@@ -24,11 +24,25 @@ export function App(): React.JSX.Element {
   const setShortcutsOpen = useStore((s) => s.setShortcutsOpen)
   const terminals = useStore((s) => s.sessions)
   const claudeSessions = useClaudeStore((s) => s.sessions)
+  const notificationsEnabled = useStore((s) => s.notificationsEnabled)
 
   // Recompute terminal <-> session correlation whenever either set changes.
   useEffect(() => {
     useCorrelationStore.getState().recompute(terminals, claudeSessions)
   }, [terminals, claudeSessions])
+
+  // Keep the main process in sync with the notifications preference.
+  useEffect(() => {
+    void window.atm.setNotificationsEnabled(notificationsEnabled)
+  }, [notificationsEnabled])
+
+  // Notification / tray click -> focus the session's tab if it's app-owned.
+  useEffect(() => {
+    return window.atm.onFocusSession((sessionId) => {
+      const terminalId = useCorrelationStore.getState().sessionToTerminal[sessionId]
+      if (terminalId) focusSession(terminalId)
+    })
+  }, [])
 
   // Re-apply appearance whenever it changes (initial apply happens in main.tsx).
   useEffect(() => {
