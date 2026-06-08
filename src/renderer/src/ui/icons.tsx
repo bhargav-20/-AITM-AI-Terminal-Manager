@@ -51,3 +51,10 @@ export const SparkIcon = ({ size = 13, className }: IconProps): React.JSX.Elemen
     <path d="M8 1.5 9.4 6 14 7.4 9.4 8.8 8 13.4 6.6 8.8 2 7.4 6.6 6 8 1.5Z" />
   </svg>
 )
+
+export const GearIcon = ({ size = 14, className }: IconProps): React.JSX.Element => (
+  <svg {...base(size)} className={className}>
+    <circle cx="8" cy="8" r="2.3" />
+    <path d="M8 1.5v1.8M8 12.7v1.8M14.5 8h-1.8M3.3 8H1.5M12.6 3.4l-1.3 1.3M4.7 11.3l-1.3 1.3M12.6 12.6l-1.3-1.3M4.7 4.7 3.4 3.4" />
+  </svg>
+)

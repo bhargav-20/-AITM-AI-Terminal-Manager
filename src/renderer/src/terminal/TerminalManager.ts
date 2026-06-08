@@ -1,7 +1,7 @@
-import type { Terminal } from '@xterm/xterm'
+import type { Terminal, ITheme } from '@xterm/xterm'
 import type { FitAddon } from '@xterm/addon-fit'
 import { WebglAddon } from '@xterm/addon-webgl'
-import { createTerminal } from './xtermConfig'
+import { createTerminal, DEFAULT_XTERM_THEME, DEFAULT_FONT_SIZE } from './xtermConfig'
 import type { PtyToRenderer, RendererToPty, SpawnTerminalRequest } from '@shared/ipc'
 
 /**
@@ -44,6 +44,8 @@ const LOW_WATER = 200_000
 class TerminalManagerImpl {
   private entries = new Map<string, Entry>()
   private orphanPorts = new Map<string, MessagePort>()
+  private termTheme: ITheme = DEFAULT_XTERM_THEME
+  private fontSize = DEFAULT_FONT_SIZE
 
   constructor() {
     window.addEventListener('message', (e: MessageEvent) => {
@@ -60,7 +62,7 @@ class TerminalManagerImpl {
   getOrCreate(id: string): Entry {
     let entry = this.entries.get(id)
     if (!entry) {
-      const { term, fit } = createTerminal()
+      const { term, fit } = createTerminal(this.termTheme, this.fontSize)
       entry = {
         id,
         term,
@@ -139,6 +141,23 @@ class TerminalManagerImpl {
   input(id: string, data: string): void {
     const entry = this.entries.get(id)
     if (entry) this.send(entry, { type: 'i', data })
+  }
+
+  /** Apply a theme + font size to all current and future terminals. */
+  setTheme(theme: ITheme, fontSize: number): void {
+    this.termTheme = theme
+    this.fontSize = fontSize
+    for (const entry of this.entries.values()) {
+      entry.term.options.theme = theme
+      entry.term.options.fontSize = fontSize
+      if (entry.element) {
+        try {
+          entry.fit.fit()
+        } catch {
+          /* not mounted yet */
+        }
+      }
+    }
   }
 
   onExit(id: string, cb: (code: number) => void): () => void {

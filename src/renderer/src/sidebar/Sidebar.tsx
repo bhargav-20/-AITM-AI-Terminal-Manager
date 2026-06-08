@@ -1,6 +1,12 @@
+import { useState } from 'react'
 import { useStore, type SessionMeta } from '../state/store'
 import { spawnSession, focusSession } from '../commands/sessions'
+import { sessionMenuItems } from '../commands/menus'
+import { openContextMenu, type MenuItem } from '../ui/contextMenuBus'
+import { ACCENTS } from '../theme/themes'
 import { ChevronIcon, PlusIcon, PinFilledIcon, SparkIcon } from '../ui/icons'
+
+const DRAG_TYPE = 'application/atm-session'
 
 function basename(p: string): string {
   if (!p) return '~'
@@ -15,12 +21,55 @@ export function Sidebar(): React.JSX.Element {
   const groupOrder = useStore((s) => s.groupOrder)
   const activeId = useStore((s) => s.activeId)
   const toggleGroupCollapsed = useStore((s) => s.toggleGroupCollapsed)
+  const setSessionGroup = useStore((s) => s.setSessionGroup)
+  const renameGroup = useStore((s) => s.renameGroup)
+  const setGroupColor = useStore((s) => s.setGroupColor)
+  const removeGroup = useStore((s) => s.removeGroup)
+  const createGroup = useStore((s) => s.createGroup)
+
+  const [editingGroup, setEditingGroup] = useState<string | null>(null)
+  const [dragOver, setDragOver] = useState<string | null>(null)
+  const [dragging, setDragging] = useState<string | null>(null)
 
   const byGroup: Record<string, SessionMeta[]> = {}
   for (const id of order) {
     const s = sessions[id]
     if (!s) continue
     ;(byGroup[s.groupId] ||= []).push(s)
+  }
+
+  const groupMenu = (gid: string): MenuItem[] => {
+    const g = groups[gid]
+    return [
+      { label: 'Rename', onClick: () => setEditingGroup(gid) },
+      {
+        label: 'Change color',
+        submenu: ACCENTS.map((a) => ({
+          label: a.name,
+          colorSwatch: a.value,
+          checked: g.color === a.value,
+          onClick: () => setGroupColor(gid, a.value),
+        })),
+      },
+      { separator: true },
+      { label: 'New terminal here', onClick: () => spawnSession({ kind: 'shell', groupId: gid }) },
+      { label: 'New Claude here', onClick: () => spawnSession({ kind: 'claude', groupId: gid }) },
+      { separator: true },
+      {
+        label: 'Delete group',
+        danger: true,
+        disabled: groupOrder.length <= 1,
+        onClick: () => removeGroup(gid),
+      },
+    ]
+  }
+
+  const handleDrop = (gid: string) => (e: React.DragEvent): void => {
+    e.preventDefault()
+    const id = e.dataTransfer.getData(DRAG_TYPE) || dragging
+    if (id) setSessionGroup(id, gid)
+    setDragOver(null)
+    setDragging(null)
   }
 
   return (
@@ -33,7 +82,7 @@ export function Sidebar(): React.JSX.Element {
         <button
           className="sidebar__new sidebar__new--ghost"
           onClick={() => spawnSession({ kind: 'shell' })}
-          title="New terminal"
+          title="New terminal (⌘T)"
         >
           <PlusIcon />
         </button>
@@ -44,22 +93,84 @@ export function Sidebar(): React.JSX.Element {
           const g = groups[gid]
           if (!g) return null
           const items = byGroup[gid] ?? []
-          if (items.length === 0) return null
           return (
-            <div className="grp" key={gid}>
-              <button className="grp__header" onClick={() => toggleGroupCollapsed(gid)}>
+            <div
+              key={gid}
+              className={`grp${dragOver === gid ? ' grp--dropover' : ''}`}
+              onDragOver={(e) => {
+                e.preventDefault()
+                e.dataTransfer.dropEffect = 'move'
+                if (dragOver !== gid) setDragOver(gid)
+              }}
+              onDragLeave={(e) => {
+                if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+                  setDragOver((prev) => (prev === gid ? null : prev))
+                }
+              }}
+              onDrop={handleDrop(gid)}
+            >
+              <div
+                className="grp__header"
+                onClick={() => editingGroup !== gid && toggleGroupCollapsed(gid)}
+                onContextMenu={(e) => openContextMenu(e, groupMenu(gid))}
+              >
                 <ChevronIcon className={`grp__chev${g.collapsed ? '' : ' grp__chev--open'}`} />
                 <span className="grp__dot" style={{ background: g.color }} />
-                <span className="grp__name">{g.name}</span>
+                {editingGroup === gid ? (
+                  <input
+                    className="grp__rename"
+                    autoFocus
+                    defaultValue={g.name}
+                    onClick={(e) => e.stopPropagation()}
+                    onBlur={(e) => {
+                      const v = e.target.value.trim()
+                      if (v) renameGroup(gid, v)
+                      setEditingGroup(null)
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        const v = (e.target as HTMLInputElement).value.trim()
+                        if (v) renameGroup(gid, v)
+                        setEditingGroup(null)
+                      } else if (e.key === 'Escape') {
+                        setEditingGroup(null)
+                      }
+                    }}
+                  />
+                ) : (
+                  <span
+                    className="grp__name"
+                    onDoubleClick={(e) => {
+                      e.stopPropagation()
+                      setEditingGroup(gid)
+                    }}
+                  >
+                    {g.name}
+                  </span>
+                )}
                 <span className="grp__count">{items.length}</span>
-              </button>
+              </div>
+
               {!g.collapsed && (
                 <div className="grp__items">
                   {items.map((s) => (
-                    <button
+                    <div
                       key={s.id}
-                      className={`row${activeId === s.id ? ' row--active' : ''}`}
+                      className={`row${activeId === s.id ? ' row--active' : ''}${
+                        dragging === s.id ? ' row--dragging' : ''
+                      }`}
+                      draggable
+                      onDragStart={(e) => {
+                        e.dataTransfer.setData(DRAG_TYPE, s.id)
+                        e.dataTransfer.effectAllowed = 'move'
+                        setDragging(s.id)
+                      }}
+                      onDragEnd={() => {
+                        setDragging(null)
+                        setDragOver(null)
+                      }}
                       onClick={() => focusSession(s.id)}
+                      onContextMenu={(e) => openContextMenu(e, sessionMenuItems(s.id))}
                       title={s.cwd || '~'}
                     >
                       <span
@@ -69,14 +180,25 @@ export function Sidebar(): React.JSX.Element {
                       <span className="row__title">{s.title}</span>
                       {s.pinned && <PinFilledIcon size={10} className="row__pin" />}
                       <span className="row__cwd">{basename(s.cwd)}</span>
-                    </button>
+                    </div>
                   ))}
+                  {items.length === 0 && <div className="grp__empty">Drop sessions here</div>}
                 </div>
               )}
             </div>
           )
         })}
-        {order.length === 0 && <div className="sidebar__empty">No sessions yet</div>}
+
+        <button
+          className="sidebar__addgroup"
+          onClick={() => {
+            const id = createGroup()
+            setEditingGroup(id)
+          }}
+        >
+          <PlusIcon size={12} />
+          <span>New group</span>
+        </button>
       </div>
     </aside>
   )

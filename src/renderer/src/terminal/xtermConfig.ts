@@ -1,10 +1,11 @@
-import { Terminal } from '@xterm/xterm'
+import { Terminal, type ITheme } from '@xterm/xterm'
 import { FitAddon } from '@xterm/addon-fit'
 import { WebLinksAddon } from '@xterm/addon-web-links'
 import { Unicode11Addon } from '@xterm/addon-unicode11'
 
-// Dark theme tuned to the app shell. Colors chosen for legibility of Claude output.
-export const TERMINAL_THEME = {
+// Default (Midnight) xterm palette. Theme presets in theme/themes.ts reference this
+// so the default terminal colors stay in sync with the default app theme.
+export const DEFAULT_XTERM_THEME: ITheme = {
   background: '#0d0e12',
   foreground: '#d6d9e0',
   cursor: '#6ea8fe',
@@ -26,8 +27,9 @@ export const TERMINAL_THEME = {
   brightMagenta: '#d6adf0',
   brightCyan: '#85e8df',
   brightWhite: '#ffffff',
-} as const
+}
 
+export const DEFAULT_FONT_SIZE = 13
 export const SCROLLBACK = 8000
 
 export interface XtermBundle {
@@ -35,10 +37,10 @@ export interface XtermBundle {
   fit: FitAddon
 }
 
-export function createTerminal(): XtermBundle {
+export function createTerminal(theme: ITheme, fontSize: number): XtermBundle {
   const term = new Terminal({
     fontFamily: '"SF Mono", Menlo, Monaco, "Cascadia Code", monospace',
-    fontSize: 13,
+    fontSize,
     lineHeight: 1.25,
     letterSpacing: 0,
     cursorBlink: true,
@@ -46,7 +48,7 @@ export function createTerminal(): XtermBundle {
     scrollback: SCROLLBACK,
     allowProposedApi: true, // required by unicode11 / serialize addons
     macOptionIsMeta: true,
-    theme: TERMINAL_THEME,
+    theme,
   })
 
   const fit = new FitAddon()

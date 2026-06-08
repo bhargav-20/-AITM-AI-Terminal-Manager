@@ -1,5 +1,7 @@
 import { createRoot } from 'react-dom/client'
 import { App } from './App'
+import { applyTheme } from './theme/applyTheme'
+import { useStore } from './state/store'
 import '@xterm/xterm/css/xterm.css'
 import './styles/global.css'
 
@@ -13,6 +15,12 @@ if (!('atm' in window)) {
     openExternal: async () => undefined,
     onMenuAction: () => undefined,
   }
+}
+
+// Apply persisted appearance before first paint to avoid a flash.
+{
+  const s = useStore.getState()
+  applyTheme(s.themeId, s.accent, s.terminalFontSize)
 }
 
 const root = document.getElementById('root')

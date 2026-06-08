@@ -30,7 +30,7 @@ export function TerminalPanel(props: IDockviewPanelProps<PanelParams>): React.JS
           cwd: session.cwd,
           shell: session.shell,
           args: session.args,
-          autorun: session.kind === 'claude' ? 'claude\r' : undefined,
+          autorun: session.autorun,
         }}
       />
     </div>

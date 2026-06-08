@@ -1,6 +1,8 @@
 import type { IDockviewPanelHeaderProps } from 'dockview'
 import { useStore } from '../state/store'
 import { closeSession } from '../commands/sessions'
+import { sessionMenuItems } from '../commands/menus'
+import { openContextMenu } from '../ui/contextMenuBus'
 import { PinIcon, PinFilledIcon, CloseIcon } from '../ui/icons'
 
 type TabParams = { terminalId: string }
@@ -22,6 +24,7 @@ export function CustomTab(props: IDockviewPanelHeaderProps<TabParams>): React.JS
       className={`atm-tab${session.pinned ? ' atm-tab--pinned' : ''}`}
       style={{ ['--group-color' as string]: color }}
       title={`${session.title} — ${session.cwd || '~'}`}
+      onContextMenu={(e) => openContextMenu(e, sessionMenuItems(id))}
     >
       <span
         className={`atm-tab__status atm-tab__status--${session.status}`}

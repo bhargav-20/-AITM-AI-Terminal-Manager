@@ -8,6 +8,10 @@ function newId(): string {
   return `s${Date.now().toString(36)}${counter}`
 }
 
+/** Command New Claude auto-runs after the shell starts. */
+export const CLAUDE_COMMAND = 'claude --dangerously-skip-permissions'
+const CLAUDE_AUTORUN = `${CLAUDE_COMMAND}\r`
+
 export interface SpawnSessionOptions {
   kind: SessionKind
   cwd?: string
@@ -15,6 +19,7 @@ export interface SpawnSessionOptions {
   title?: string
   shell?: string
   args?: string[]
+  autorun?: string
 }
 
 const defaultGroupFor = (kind: SessionKind): string => (kind === 'claude' ? 'claude' : 'general')
@@ -29,6 +34,7 @@ export function spawnSession(opts: SpawnSessionOptions): string {
     cwd: opts.cwd ?? '',
     shell: opts.shell,
     args: opts.args,
+    autorun: opts.autorun ?? (opts.kind === 'claude' ? CLAUDE_AUTORUN : undefined),
     kind: opts.kind,
     groupId: opts.groupId ?? defaultGroupFor(opts.kind),
     pinned: false,
@@ -80,4 +86,27 @@ export function closeActiveSession(force = false): boolean {
   const activeId = useStore.getState().activeId
   if (!activeId) return false
   return closeSession(activeId, force)
+}
+
+export function togglePinActive(): void {
+  const activeId = useStore.getState().activeId
+  if (activeId) useStore.getState().togglePin(activeId)
+}
+
+/** Focus the Nth panel (0-based) in dockview tab order. */
+export function focusTabByIndex(index: number): void {
+  const panels = getDockApi()?.panels ?? []
+  const panel = panels[index]
+  if (panel) focusSession(panel.id)
+}
+
+export function focusAdjacentTab(delta: number): void {
+  const api = getDockApi()
+  const panels = api?.panels ?? []
+  if (panels.length === 0) return
+  const activeId = useStore.getState().activeId
+  const current = panels.findIndex((p) => p.id === activeId)
+  const base = current < 0 ? 0 : current
+  const next = (base + delta + panels.length) % panels.length
+  focusSession(panels[next].id)
 }
