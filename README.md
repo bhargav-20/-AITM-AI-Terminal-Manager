@@ -49,12 +49,31 @@ npm run dev        # launch the app with hot reload
 Other scripts:
 
 ```bash
-npm run typecheck  # tsc for main/preload + renderer
-npm test           # Vitest (status machine, line parser)
-npm run build      # production build into out/
-npm run package    # build an unpacked .app into release/ (no signing)
-npm run dist       # build distributable dmg + zip
+npm run typecheck      # tsc for main/preload + renderer
+npm test               # Vitest (status machine, line parser)
+npm run build          # production build into out/
+npm run package        # build an unsigned .app into release/ (no signing attempt)
+npm run install:local  # build + copy the app to /Applications (personal use)
+npm run dist           # build distributable dmg + zip (for signed releases)
 ```
+
+### Personal use (no Apple Developer account)
+
+Signing is only needed to distribute to *other* people's Macs cleanly and to use
+auto-update. For your own machine, just:
+
+```bash
+npm run install:local   # installs to /Applications/AI Terminal Manager.app
+```
+
+A locally built app has no Gatekeeper quarantine, so it opens normally. To update,
+re-run it after pulling changes:
+
+```bash
+git pull && npm install && npm run install:local
+```
+
+(Auto-update stays dormant in unsigned builds — updating just means rebuilding.)
 
 ---
 

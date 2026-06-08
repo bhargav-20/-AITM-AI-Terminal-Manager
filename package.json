@@ -19,7 +19,8 @@
     "test:watch": "vitest",
     "lint": "eslint . --ext .ts,.tsx",
     "format": "prettier --write \"**/*.{ts,tsx,css,json,md}\"",
-    "package": "electron-vite build && electron-builder --dir",
+    "package": "electron-vite build && CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder --dir",
+    "install:local": "npm run package && rm -rf '/Applications/AI Terminal Manager.app' && cp -R 'release/mac-arm64/AI Terminal Manager.app' /Applications/ && echo 'Installed to /Applications/AI Terminal Manager.app'",
     "dist": "electron-vite build && electron-builder"
   },
   "dependencies": {
