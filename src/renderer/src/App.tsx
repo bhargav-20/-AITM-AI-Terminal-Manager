@@ -11,6 +11,7 @@ import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts'
 import { applyTheme } from './theme/applyTheme'
 import { useStore } from './state/store'
 import { useClaudeStore } from './state/claudeStore'
+import { useCorrelationStore } from './state/correlationStore'
 import { spawnSession, spawnClaudeSession, closeActiveSession } from './commands/sessions'
 
 export function App(): React.JSX.Element {
@@ -21,6 +22,13 @@ export function App(): React.JSX.Element {
   const fontSize = useStore((s) => s.terminalFontSize)
   const setSettingsOpen = useStore((s) => s.setSettingsOpen)
   const setShortcutsOpen = useStore((s) => s.setShortcutsOpen)
+  const terminals = useStore((s) => s.sessions)
+  const claudeSessions = useClaudeStore((s) => s.sessions)
+
+  // Recompute terminal <-> session correlation whenever either set changes.
+  useEffect(() => {
+    useCorrelationStore.getState().recompute(terminals, claudeSessions)
+  }, [terminals, claudeSessions])
 
   // Re-apply appearance whenever it changes (initial apply happens in main.tsx).
   useEffect(() => {

@@ -1,17 +1,11 @@
 import { useClaudeStore } from '../state/claudeStore'
 import { useStore } from '../state/store'
+import { useCorrelationStore } from '../state/correlationStore'
 import { metricLabel } from './sessionMetric'
 import { openDiff } from '../commands/diff'
+import { focusSession } from '../commands/sessions'
 import { DiffIcon } from '../ui/icons'
-import type { ClaudeStatus } from '@shared/claude'
-
-const STATUS_COLOR: Record<ClaudeStatus, string> = {
-  working: '#6ea8fe',
-  'awaiting-input': '#e2b66d',
-  idle: '#8a90a0',
-  ended: '#4a4f5c',
-  unknown: '#5a6172',
-}
+import { CLAUDE_STATUS_COLOR } from '../util/claudeStatus'
 
 function basename(p: string): string {
   if (!p) return '~'
@@ -23,6 +17,7 @@ export function ClaudeSessions(): React.JSX.Element | null {
   const sessions = useClaudeStore((s) => s.sessions)
   const metric = useStore((s) => s.sessionMetric)
   const rates = useStore((s) => s.rates)
+  const sessionToTerminal = useCorrelationStore((s) => s.sessionToTerminal)
   if (sessions.length === 0) return null
 
   return (
@@ -31,16 +26,24 @@ export function ClaudeSessions(): React.JSX.Element | null {
         <span>Claude Sessions</span>
         <span className="claude-list__count">{sessions.length}</span>
       </div>
-      {sessions.map((s) => (
-        <div className="csess" key={s.sessionId} title={`${s.status} — ${s.statusReason}`}>
-          <span
-            className={`csess__status csess__status--${s.status}`}
-            style={{ background: STATUS_COLOR[s.status] }}
-          />
-          <div className="csess__main">
-            <div className="csess__title">
-              {s.title || basename(s.cwd) || s.sessionId.slice(0, 8)}
-            </div>
+      {sessions.map((s) => {
+        const ownedTerminal = sessionToTerminal[s.sessionId]
+        return (
+          <div
+            className={`csess${ownedTerminal ? ' csess--owned' : ''}`}
+            key={s.sessionId}
+            title={`${s.status} — ${s.statusReason}${ownedTerminal ? ' · click to focus its tab' : ''}`}
+            onClick={ownedTerminal ? () => focusSession(ownedTerminal) : undefined}
+          >
+            <span
+              className={`csess__status csess__status--${s.status}`}
+              style={{ background: CLAUDE_STATUS_COLOR[s.status] }}
+            />
+            <div className="csess__main">
+              <div className="csess__title">
+                {s.title || basename(s.cwd) || s.sessionId.slice(0, 8)}
+                {ownedTerminal && <span className="csess__owned" title="Running in a tab here">↗</span>}
+              </div>
             <div className="csess__meta">
               <span className="csess__cwd">{basename(s.cwd)}</span>
               {s.gitBranch && s.gitBranch !== 'HEAD' && (
@@ -58,18 +61,19 @@ export function ClaudeSessions(): React.JSX.Element | null {
               </span>
             )}
           </div>
-          <button
-            className="csess__diff"
-            title="Show git diff"
-            onClick={(e) => {
-              e.stopPropagation()
-              openDiff(s.cwd, s.title || undefined)
-            }}
-          >
-            <DiffIcon size={13} />
-          </button>
-        </div>
-      ))}
+            <button
+              className="csess__diff"
+              title="Show git diff"
+              onClick={(e) => {
+                e.stopPropagation()
+                openDiff(s.cwd, s.title || undefined)
+              }}
+            >
+              <DiffIcon size={13} />
+            </button>
+          </div>
+        )
+      })}
     </div>
   )
 }

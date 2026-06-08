@@ -6,6 +6,7 @@ import type { GitDiffResult, OpenResult } from '@shared/git'
 declare global {
   interface Window {
     atm: {
+      homeDir: string
       spawnTerminal(req: SpawnTerminalRequest): Promise<SpawnTerminalResult>
       killTerminal(terminalId: string): Promise<void>
       openExternal(url: string): Promise<void>

@@ -1,3 +1,4 @@
+import { homedir } from 'os'
 import { contextBridge, ipcRenderer } from 'electron'
 import { IPC, type SpawnTerminalRequest } from '../shared/ipc'
 import { CLAUDE_IPC, type ClaudeSession } from '../shared/claude'
@@ -12,6 +13,7 @@ const MENU_CHANNELS = [
 
 // Control-plane API exposed to the renderer's main world.
 const api = {
+  homeDir: homedir(),
   spawnTerminal: (req: SpawnTerminalRequest) => ipcRenderer.invoke(IPC.spawnTerminal, req),
   killTerminal: (terminalId: string) => ipcRenderer.invoke(IPC.killTerminal, terminalId),
   openExternal: (url: string) => ipcRenderer.invoke('app:openExternal', url),

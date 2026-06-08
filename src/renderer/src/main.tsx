@@ -10,6 +10,7 @@ import './styles/global.css'
 // a browser), so the app chrome still renders instead of hard-crashing.
 if (!('atm' in window)) {
   ;(window as unknown as { atm: Window['atm'] }).atm = {
+    homeDir: '/Users/dev',
     spawnTerminal: async () => ({ terminalId: '', pid: -1 }),
     killTerminal: async () => undefined,
     openExternal: async () => undefined,

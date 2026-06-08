@@ -28,7 +28,8 @@ export function spawnSession(opts: SpawnSessionOptions): string {
   useStore.getState().addSession({
     id,
     title: opts.title ?? defaultTitleFor(opts.kind),
-    cwd: opts.cwd ?? '',
+    // Resolve to an absolute cwd so it matches the transcript's cwd for correlation.
+    cwd: opts.cwd?.trim() || window.atm.homeDir,
     shell: opts.shell,
     args: opts.args,
     autorun:
