@@ -28,8 +28,6 @@ const FLUSH_MS = 8
 
 const parentPort = (process as unknown as { parentPort: Port }).parentPort
 
-console.log(`ready — node-pty loaded (spawn=${typeof pty.spawn})`)
-
 parentPort.on('message', (e) => {
   const msg = e.data
   if (msg?.type === 'spawn') {
@@ -61,14 +59,8 @@ function spawn(req: SpawnTerminalRequest, port: Port): void {
 
   const session: Session = { pty: p, port, buf: '', flushTimer: null, paused: false }
   sessions.set(req.terminalId, session)
-  console.log(`spawned ${req.terminalId} pid=${p.pid} shell=${req.shell || defaultShell()}`)
 
-  let firstData = true
   p.onData((data) => {
-    if (firstData) {
-      firstData = false
-      console.log(`first data ${req.terminalId} (+${data.length} chars)`)
-    }
     session.buf += data
     scheduleFlush(session)
   })
