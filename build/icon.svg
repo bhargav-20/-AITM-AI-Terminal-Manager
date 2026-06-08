@@ -1,0 +1,29 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1024" y2="1024" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#6ea8fe" />
+      <stop offset="0.55" stop-color="#7c8bf5" />
+      <stop offset="1" stop-color="#b48ef0" />
+    </linearGradient>
+    <linearGradient id="sheen" x1="0" y1="112" x2="0" y2="640" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.22" />
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0" />
+    </linearGradient>
+  </defs>
+
+  <!-- squircle background -->
+  <rect x="112" y="112" width="800" height="800" rx="192" fill="url(#bg)" />
+  <rect x="112" y="112" width="800" height="800" rx="192" fill="url(#sheen)" />
+
+  <!-- terminal prompt chevron -->
+  <path d="M388 392 L524 512 L388 632" fill="none" stroke="#ffffff" stroke-width="68"
+    stroke-linecap="round" stroke-linejoin="round" />
+
+  <!-- cursor / underscore -->
+  <rect x="556" y="600" width="176" height="54" rx="27" fill="#ffffff" />
+
+  <!-- AI spark -->
+  <g transform="translate(704 360) scale(7) translate(-8 -8)" fill="#ffffff" fill-opacity="0.95">
+    <path d="M8 1.5 9.4 6 14 7.4 9.4 8.8 8 13.4 6.6 8.8 2 7.4 6.6 6 8 1.5Z" />
+  </g>
+</svg>

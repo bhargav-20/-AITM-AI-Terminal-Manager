@@ -52,6 +52,7 @@ Other scripts:
 npm run typecheck      # tsc for main/preload + renderer
 npm test               # Vitest (status machine, line parser)
 npm run build          # production build into out/
+npm run icon           # regenerate app icon (png + icns) from build/icon.svg
 npm run package        # build an unsigned .app into release/ (no signing attempt)
 npm run install:local  # build + copy the app to /Applications (personal use)
 npm run dist           # build distributable dmg + zip (for signed releases)

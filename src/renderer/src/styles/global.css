@@ -61,11 +61,22 @@ button {
   user-select: none;
 }
 
+.titlebar__brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  -webkit-app-region: drag;
+}
+
+.titlebar__brand svg {
+  display: block;
+}
+
 .titlebar__title {
   font-weight: 600;
   font-size: 12px;
   letter-spacing: 0.03em;
-  color: var(--text-dim);
+  color: var(--text);
 }
 
 .titlebar__actions {

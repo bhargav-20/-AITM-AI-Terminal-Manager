@@ -188,6 +188,14 @@ app.whenReady().then(() => {
   buildMenu()
   startPtyHost()
   createWindow()
+  // In dev the dock shows the default Electron icon; packaged builds use the .icns.
+  if (!app.isPackaged && process.platform === 'darwin') {
+    try {
+      app.dock?.setIcon(join(process.cwd(), 'build', 'icon.png'))
+    } catch {
+      /* ignore */
+    }
+  }
   if (mainWindow) claudeService.setWindow(mainWindow)
   initTray({ getWindow: () => mainWindow, sendMenu, focusSession: focusClaudeSession })
   claudeService.setOnUpdate(updateTray)

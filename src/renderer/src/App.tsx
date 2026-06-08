@@ -7,6 +7,7 @@ import { SettingsModal } from './ui/SettingsModal'
 import { ShortcutsModal } from './ui/ShortcutsModal'
 import { toast } from './ui/toastBus'
 import { GearIcon } from './ui/icons'
+import { Logo } from './ui/Logo'
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts'
 import { applyTheme } from './theme/applyTheme'
 import { useStore } from './state/store'
@@ -78,7 +79,10 @@ export function App(): React.JSX.Element {
   return (
     <div className="app-shell">
       <header className="titlebar">
-        <span className="titlebar__title">AI Terminal Manager</span>
+        <div className="titlebar__brand">
+          <Logo size={18} />
+          <span className="titlebar__title">AI Terminal Manager</span>
+        </div>
         <div className="titlebar__actions">
           <button
             className="iconbtn"
