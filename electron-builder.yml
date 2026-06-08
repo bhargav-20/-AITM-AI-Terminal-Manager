@@ -1,0 +1,31 @@
+appId: com.atm.aiterminalmanager
+productName: AI Terminal Manager
+directories:
+  output: release
+  buildResources: build
+files:
+  - out/**/*
+  - package.json
+  - '!**/*.map'
+# node-pty is a native module + ships a spawn-helper binary; it must live outside
+# the asar so it can be exec'd at runtime. node-pty resolves app.asar ->
+# app.asar.unpacked internally, so this is all that's needed.
+asarUnpack:
+  - '**/node_modules/node-pty/**'
+mac:
+  category: public.app-category.developer-tools
+  target:
+    - target: dmg
+      arch:
+        - arm64
+    - target: zip # required by electron-updater (Squirrel.Mac)
+      arch:
+        - arm64
+  # Auto-update on macOS requires a Developer-ID signed + notarized build. Set the
+  # signing identity (CSC_LINK / CSC_KEY_PASSWORD) and `notarize` here when ready;
+  # until then `npm run dist` produces an unsigned local build.
+# Update feed for electron-updater. Replace owner/repo and publish releases here.
+publish:
+  - provider: github
+    owner: OWNER
+    repo: ai-terminal-manager

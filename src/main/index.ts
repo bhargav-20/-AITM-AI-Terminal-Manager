@@ -17,6 +17,7 @@ import { claudeService } from './services/claude/service'
 import { GIT_IPC } from '../shared/git'
 import { getDiff, openInVSCode } from './services/git'
 import { initTray, update as updateTray, setNotificationsEnabled } from './tray'
+import { initAutoUpdate, checkForUpdatesManual } from './updater'
 
 let mainWindow: BrowserWindow | null = null
 let ptyHost: UtilityProcess | null = null
@@ -161,6 +162,8 @@ ipcMain.handle(GIT_IPC.diff, (_e, cwd: string) => getDiff(cwd))
 ipcMain.handle(GIT_IPC.openInVSCode, (_e, cwd: string) => openInVSCode(cwd))
 
 ipcMain.handle('app:setNotifications', (_e, enabled: boolean) => setNotificationsEnabled(enabled))
+ipcMain.handle('app:checkForUpdates', () => checkForUpdatesManual())
+ipcMain.handle('app:getVersion', () => app.getVersion())
 
 // Resolve whether a command (e.g. "claude") is on the user's interactive-login
 // PATH, so the UI can warn when New Claude would fail. Returns the resolved path
@@ -188,6 +191,7 @@ app.whenReady().then(() => {
   if (mainWindow) claudeService.setWindow(mainWindow)
   initTray({ getWindow: () => mainWindow, sendMenu, focusSession: focusClaudeSession })
   claudeService.setOnUpdate(updateTray)
+  initAutoUpdate(() => mainWindow)
   void claudeService.start()
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {

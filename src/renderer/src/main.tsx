@@ -16,6 +16,8 @@ if (!('atm' in window)) {
     openExternal: async () => undefined,
     resolveCommand: async () => null,
     setNotificationsEnabled: async () => undefined,
+    getVersion: async () => '0.0.0',
+    checkForUpdates: async () => ({ status: 'disabled' }),
     onMenuAction: () => undefined,
     onFocusSession: () => () => undefined,
     claude: { getSnapshot: async () => [], onSnapshot: () => () => undefined },

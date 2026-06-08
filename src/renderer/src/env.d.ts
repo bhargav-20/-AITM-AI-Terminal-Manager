@@ -12,6 +12,8 @@ declare global {
       openExternal(url: string): Promise<void>
       resolveCommand(token: string): Promise<string | null>
       setNotificationsEnabled(enabled: boolean): Promise<void>
+      getVersion(): Promise<string>
+      checkForUpdates(): Promise<{ status: string; version?: string; message?: string }>
       onMenuAction(cb: (action: string) => void): void
       onFocusSession(cb: (sessionId: string) => void): () => void
       claude: {

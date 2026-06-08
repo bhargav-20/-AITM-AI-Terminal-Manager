@@ -1,6 +1,8 @@
+import { useEffect, useState } from 'react'
 import { useStore } from '../state/store'
 import { THEMES, ACCENTS } from '../theme/themes'
 import { Modal } from './Modal'
+import { toast } from './toastBus'
 
 export function SettingsModal(): React.JSX.Element {
   const open = useStore((s) => s.settingsOpen)
@@ -13,6 +15,24 @@ export function SettingsModal(): React.JSX.Element {
   const setFontSize = useStore((s) => s.setTerminalFontSize)
   const claudeCommand = useStore((s) => s.claudeCommand)
   const setClaudeCommand = useStore((s) => s.setClaudeCommand)
+  const [version, setVersion] = useState('')
+
+  useEffect(() => {
+    window.atm.getVersion().then(setVersion).catch(() => undefined)
+  }, [])
+
+  const checkUpdates = async (): Promise<void> => {
+    const r = await window.atm.checkForUpdates()
+    toast(
+      r.status === 'available'
+        ? `Update available: ${r.version}`
+        : r.status === 'no-update'
+          ? 'You’re up to date'
+          : r.status === 'disabled'
+            ? 'Updates run in the packaged app'
+            : 'Update check failed',
+    )
+  }
   const notificationsEnabled = useStore((s) => s.notificationsEnabled)
   const setNotificationsEnabled = useStore((s) => s.setNotificationsEnabled)
   const sessionMetric = useStore((s) => s.sessionMetric)
@@ -151,6 +171,16 @@ export function SettingsModal(): React.JSX.Element {
         <p className="settings__hint">
           Run when you click “New Claude”. Use a full path if the CLI isn’t on your PATH.
         </p>
+      </section>
+
+      <section className="settings__section">
+        <h4 className="settings__label">Software update</h4>
+        <div className="switch-row">
+          <span>Version {version || '…'}</span>
+          <button className="diffpanel__btn" onClick={() => void checkUpdates()}>
+            Check for updates
+          </button>
+        </div>
       </section>
     </Modal>
   )

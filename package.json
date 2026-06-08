@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "description": "A GUI terminal manager specialized for managing Claude Code CLI sessions",
   "main": "./out/main/index.js",
-  "author": "",
+  "author": "AI Terminal Manager",
   "license": "MIT",
   "type": "commonjs",
   "scripts": {
@@ -24,6 +24,7 @@
   },
   "dependencies": {
     "chokidar": "^5.0.0",
+    "electron-updater": "^6.8.9",
     "node-pty": "^1.1.0"
   },
   "devDependencies": {

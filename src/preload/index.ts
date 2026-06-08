@@ -20,6 +20,9 @@ const api = {
   resolveCommand: (token: string) => ipcRenderer.invoke('app:resolveCommand', token),
   setNotificationsEnabled: (enabled: boolean) =>
     ipcRenderer.invoke('app:setNotifications', enabled),
+  getVersion: (): Promise<string> => ipcRenderer.invoke('app:getVersion'),
+  checkForUpdates: (): Promise<{ status: string; version?: string; message?: string }> =>
+    ipcRenderer.invoke('app:checkForUpdates'),
   onMenuAction: (cb: (action: string) => void): void => {
     for (const ch of MENU_CHANNELS) ipcRenderer.on(ch, () => cb(ch))
   },
