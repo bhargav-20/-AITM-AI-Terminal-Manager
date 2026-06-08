@@ -7,7 +7,6 @@ export interface ClaudeUsage {
   outputTokens: number
   cacheCreationInputTokens: number
   cacheReadInputTokens: number
-  estimatedCostUsd: number
 }
 
 export interface ClaudeTaskSummary {

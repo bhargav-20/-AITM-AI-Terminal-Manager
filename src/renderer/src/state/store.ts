@@ -54,6 +54,23 @@ export const DEFAULT_ACCENT = '#6ea8fe'
 export const DEFAULT_FONT_SIZE = 13
 export const DEFAULT_CLAUDE_COMMAND = 'claude --dangerously-skip-permissions'
 
+export type SessionMetric = 'cost' | 'tokens' | 'off'
+export type RateModel = 'opus' | 'sonnet' | 'haiku'
+export interface ModelRate {
+  input: number
+  output: number
+  cacheWrite: number
+  cacheRead: number
+}
+export type RateMap = Record<RateModel, ModelRate>
+
+/** USD per 1M tokens, by model family. Editable in Settings. */
+export const DEFAULT_RATES: RateMap = {
+  opus: { input: 15, output: 75, cacheWrite: 18.75, cacheRead: 1.5 },
+  sonnet: { input: 3, output: 15, cacheWrite: 3.75, cacheRead: 0.3 },
+  haiku: { input: 0.8, output: 4, cacheWrite: 1.0, cacheRead: 0.08 },
+}
+
 interface AppState {
   sessions: Record<string, SessionMeta>
   order: string[]
@@ -68,6 +85,10 @@ interface AppState {
 
   // command New Claude runs (persisted)
   claudeCommand: string
+
+  // session metric display (persisted)
+  sessionMetric: SessionMetric
+  rates: RateMap
 
   // transient UI (not persisted)
   settingsOpen: boolean
@@ -90,6 +111,9 @@ interface AppState {
   setAccent: (color: string) => void
   setTerminalFontSize: (n: number) => void
   setClaudeCommand: (cmd: string) => void
+  setSessionMetric: (m: SessionMetric) => void
+  setRate: (model: RateModel, field: keyof ModelRate, value: number) => void
+  resetRates: () => void
   setSettingsOpen: (open: boolean) => void
   setShortcutsOpen: (open: boolean) => void
 }
@@ -113,6 +137,8 @@ export const useStore = create<AppState>()(
       accent: DEFAULT_ACCENT,
       terminalFontSize: DEFAULT_FONT_SIZE,
       claudeCommand: DEFAULT_CLAUDE_COMMAND,
+      sessionMetric: 'cost',
+      rates: structuredClone(DEFAULT_RATES),
 
       settingsOpen: false,
       shortcutsOpen: false,
@@ -217,6 +243,15 @@ export const useStore = create<AppState>()(
       setAccent: (color) => set({ accent: color }),
       setTerminalFontSize: (n) => set({ terminalFontSize: Math.max(9, Math.min(22, n)) }),
       setClaudeCommand: (cmd) => set({ claudeCommand: cmd }),
+      setSessionMetric: (m) => set({ sessionMetric: m }),
+      setRate: (model, field, value) =>
+        set((st) => ({
+          rates: {
+            ...st.rates,
+            [model]: { ...st.rates[model], [field]: Number.isFinite(value) ? value : 0 },
+          },
+        })),
+      resetRates: () => set({ rates: structuredClone(DEFAULT_RATES) }),
       setSettingsOpen: (open) => set({ settingsOpen: open }),
       setShortcutsOpen: (open) => set({ shortcutsOpen: open }),
     }),
@@ -231,6 +266,8 @@ export const useStore = create<AppState>()(
         accent: st.accent,
         terminalFontSize: st.terminalFontSize,
         claudeCommand: st.claudeCommand,
+        sessionMetric: st.sessionMetric,
+        rates: st.rates,
       }),
     },
   ),

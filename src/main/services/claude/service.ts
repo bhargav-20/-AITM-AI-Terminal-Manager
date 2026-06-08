@@ -186,7 +186,7 @@ export class ClaudeService {
       if (p.version) d.version = p.version
       if (p.aiTitle) d.title = p.aiTitle
       if (p.model) d.model = p.model
-      if (p.usage) addUsage(d.usage, p.usage, p.model)
+      if (p.usage) addUsage(d.usage, p.usage)
       if (p.type === 'assistant') {
         d.lastType = 'assistant'
         d.lastStopReason = p.stopReason

@@ -1,4 +1,6 @@
 import { useClaudeStore } from '../state/claudeStore'
+import { useStore } from '../state/store'
+import { metricLabel } from './sessionMetric'
 import type { ClaudeStatus } from '@shared/claude'
 
 const STATUS_COLOR: Record<ClaudeStatus, string> = {
@@ -15,14 +17,10 @@ function basename(p: string): string {
   return parts[parts.length - 1] || p
 }
 
-function fmtCost(n: number): string {
-  if (n >= 0.01) return `$${n.toFixed(2)}`
-  if (n > 0) return '<$0.01'
-  return '$0'
-}
-
 export function ClaudeSessions(): React.JSX.Element | null {
   const sessions = useClaudeStore((s) => s.sessions)
+  const metric = useStore((s) => s.sessionMetric)
+  const rates = useStore((s) => s.rates)
   if (sessions.length === 0) return null
 
   return (
@@ -49,7 +47,9 @@ export function ClaudeSessions(): React.JSX.Element | null {
             </div>
           </div>
           <div className="csess__stats">
-            <span className="csess__cost">{fmtCost(s.usage.estimatedCostUsd)}</span>
+            {metricLabel(s, metric, rates) && (
+              <span className="csess__cost">{metricLabel(s, metric, rates)}</span>
+            )}
             {s.tasks.total > 0 && (
               <span className="csess__tasks">
                 {s.tasks.completed}/{s.tasks.total}
