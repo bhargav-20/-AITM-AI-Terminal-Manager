@@ -3,8 +3,8 @@ import { useStore } from '../state/store'
 import { useCorrelationStore } from '../state/correlationStore'
 import { metricLabel } from './sessionMetric'
 import { openDiff } from '../commands/diff'
-import { focusSession } from '../commands/sessions'
-import { DiffIcon } from '../ui/icons'
+import { focusSession, resumeClaudeSession } from '../commands/sessions'
+import { DiffIcon, PlayIcon } from '../ui/icons'
 import { CLAUDE_STATUS_COLOR } from '../util/claudeStatus'
 
 function basename(p: string): string {
@@ -30,10 +30,16 @@ export function ClaudeSessions(): React.JSX.Element | null {
         const ownedTerminal = sessionToTerminal[s.sessionId]
         return (
           <div
-            className={`csess${ownedTerminal ? ' csess--owned' : ''}`}
+            className="csess csess--clickable"
             key={s.sessionId}
-            title={`${s.status} — ${s.statusReason}${ownedTerminal ? ' · click to focus its tab' : ''}`}
-            onClick={ownedTerminal ? () => focusSession(ownedTerminal) : undefined}
+            title={`${s.status} — ${s.statusReason} · ${
+              ownedTerminal ? 'click to focus its tab' : 'click to resume in a new tab'
+            }`}
+            onClick={() =>
+              ownedTerminal
+                ? focusSession(ownedTerminal)
+                : resumeClaudeSession(s.sessionId, s.cwd, s.title)
+            }
           >
             <span
               className={`csess__status csess__status--${s.status}`}
@@ -61,6 +67,18 @@ export function ClaudeSessions(): React.JSX.Element | null {
               </span>
             )}
           </div>
+            {!ownedTerminal && (
+              <button
+                className="csess__diff"
+                title="Resume in a new tab"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  resumeClaudeSession(s.sessionId, s.cwd, s.title)
+                }}
+              >
+                <PlayIcon size={11} />
+              </button>
+            )}
             <button
               className="csess__diff"
               title="Show git diff"

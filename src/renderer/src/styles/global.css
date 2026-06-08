@@ -530,7 +530,7 @@ button {
   background: var(--bg-hover);
 }
 
-.csess--owned {
+.csess--clickable {
   cursor: pointer;
 }
 

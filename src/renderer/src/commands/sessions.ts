@@ -108,6 +108,18 @@ export function closeActiveSession(force = false): boolean {
   return closeSession(activeId, force)
 }
 
+/** Resume an existing Claude session (by id) in a new terminal, in its cwd. */
+export function resumeClaudeSession(sessionId: string, cwd: string, title?: string): string {
+  const base = useStore.getState().claudeCommand.trim()
+  const autorun = `${base} --resume ${sessionId}\r`
+  return spawnSession({
+    kind: 'claude',
+    cwd,
+    title: title ? `${title} (resumed)` : 'Claude (resumed)',
+    autorun,
+  })
+}
+
 export function togglePinActive(): void {
   const activeId = useStore.getState().activeId
   if (activeId) useStore.getState().togglePin(activeId)
