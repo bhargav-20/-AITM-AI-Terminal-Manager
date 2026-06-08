@@ -10,7 +10,7 @@ import { GearIcon } from './ui/icons'
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts'
 import { applyTheme } from './theme/applyTheme'
 import { useStore } from './state/store'
-import { spawnSession, closeActiveSession } from './commands/sessions'
+import { spawnSession, spawnClaudeSession, closeActiveSession } from './commands/sessions'
 
 export function App(): React.JSX.Element {
   useKeyboardShortcuts()
@@ -33,7 +33,7 @@ export function App(): React.JSX.Element {
           spawnSession({ kind: 'shell' })
           break
         case 'menu:newClaude':
-          spawnSession({ kind: 'claude' })
+          spawnClaudeSession()
           break
         case 'menu:closeActive':
           if (!closeActiveSession(false)) toast('Tab is pinned — ⇧⌘W to force close')

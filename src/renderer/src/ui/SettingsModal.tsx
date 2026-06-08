@@ -11,6 +11,8 @@ export function SettingsModal(): React.JSX.Element {
   const setAccent = useStore((s) => s.setAccent)
   const fontSize = useStore((s) => s.terminalFontSize)
   const setFontSize = useStore((s) => s.setTerminalFontSize)
+  const claudeCommand = useStore((s) => s.claudeCommand)
+  const setClaudeCommand = useStore((s) => s.setClaudeCommand)
 
   return (
     <Modal open={open} onClose={() => setOpen(false)} title="Settings">
@@ -64,6 +66,20 @@ export function SettingsModal(): React.JSX.Element {
             +
           </button>
         </div>
+      </section>
+
+      <section className="settings__section">
+        <h4 className="settings__label">Claude command</h4>
+        <input
+          className="settings__input"
+          value={claudeCommand}
+          spellCheck={false}
+          onChange={(e) => setClaudeCommand(e.target.value)}
+          placeholder="claude --dangerously-skip-permissions"
+        />
+        <p className="settings__hint">
+          Run when you click “New Claude”. Use a full path if the CLI isn’t on your PATH.
+        </p>
       </section>
     </Modal>
   )

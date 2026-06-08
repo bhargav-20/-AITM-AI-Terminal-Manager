@@ -1,16 +1,13 @@
 import { getDockApi } from '../layout/dockApi'
 import { useStore, type SessionKind } from '../state/store'
 import { TerminalManager } from '../terminal/TerminalManager'
+import { toast } from '../ui/toastBus'
 
 let counter = 0
 function newId(): string {
   counter += 1
   return `s${Date.now().toString(36)}${counter}`
 }
-
-/** Command New Claude auto-runs after the shell starts. */
-export const CLAUDE_COMMAND = 'claude --dangerously-skip-permissions'
-const CLAUDE_AUTORUN = `${CLAUDE_COMMAND}\r`
 
 export interface SpawnSessionOptions {
   kind: SessionKind
@@ -34,7 +31,9 @@ export function spawnSession(opts: SpawnSessionOptions): string {
     cwd: opts.cwd ?? '',
     shell: opts.shell,
     args: opts.args,
-    autorun: opts.autorun ?? (opts.kind === 'claude' ? CLAUDE_AUTORUN : undefined),
+    autorun:
+      opts.autorun ??
+      (opts.kind === 'claude' ? `${useStore.getState().claudeCommand}\r` : undefined),
     kind: opts.kind,
     groupId: opts.groupId ?? defaultGroupFor(opts.kind),
     pinned: false,
@@ -49,6 +48,26 @@ export function spawnSession(opts: SpawnSessionOptions): string {
     title: opts.title ?? defaultTitleFor(opts.kind),
     params: { terminalId: id },
   })
+  return id
+}
+
+/**
+ * Spawn a Claude session and, in the background, warn if the configured command
+ * isn't resolvable on PATH (so the user isn't left wondering why nothing launched).
+ */
+export function spawnClaudeSession(opts: Omit<SpawnSessionOptions, 'kind'> = {}): string {
+  const id = spawnSession({ ...opts, kind: 'claude' })
+  const first = useStore.getState().claudeCommand.trim().split(/\s+/)[0]
+  if (first) {
+    window.atm
+      .resolveCommand(first)
+      .then((found) => {
+        if (!found) {
+          toast(`"${first}" not found on PATH — set the Claude command in Settings (⌘,)`)
+        }
+      })
+      .catch(() => undefined)
+  }
   return id
 }
 

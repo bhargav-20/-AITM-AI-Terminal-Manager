@@ -52,6 +52,7 @@ export const GROUP_PALETTE = [
 export const DEFAULT_THEME_ID = 'midnight'
 export const DEFAULT_ACCENT = '#6ea8fe'
 export const DEFAULT_FONT_SIZE = 13
+export const DEFAULT_CLAUDE_COMMAND = 'claude --dangerously-skip-permissions'
 
 interface AppState {
   sessions: Record<string, SessionMeta>
@@ -64,6 +65,9 @@ interface AppState {
   themeId: string
   accent: string
   terminalFontSize: number
+
+  // command New Claude runs (persisted)
+  claudeCommand: string
 
   // transient UI (not persisted)
   settingsOpen: boolean
@@ -85,6 +89,7 @@ interface AppState {
   setThemeId: (id: string) => void
   setAccent: (color: string) => void
   setTerminalFontSize: (n: number) => void
+  setClaudeCommand: (cmd: string) => void
   setSettingsOpen: (open: boolean) => void
   setShortcutsOpen: (open: boolean) => void
 }
@@ -107,6 +112,7 @@ export const useStore = create<AppState>()(
       themeId: DEFAULT_THEME_ID,
       accent: DEFAULT_ACCENT,
       terminalFontSize: DEFAULT_FONT_SIZE,
+      claudeCommand: DEFAULT_CLAUDE_COMMAND,
 
       settingsOpen: false,
       shortcutsOpen: false,
@@ -210,6 +216,7 @@ export const useStore = create<AppState>()(
       setThemeId: (id) => set({ themeId: id }),
       setAccent: (color) => set({ accent: color }),
       setTerminalFontSize: (n) => set({ terminalFontSize: Math.max(9, Math.min(22, n)) }),
+      setClaudeCommand: (cmd) => set({ claudeCommand: cmd }),
       setSettingsOpen: (open) => set({ settingsOpen: open }),
       setShortcutsOpen: (open) => set({ shortcutsOpen: open }),
     }),
@@ -223,6 +230,7 @@ export const useStore = create<AppState>()(
         themeId: st.themeId,
         accent: st.accent,
         terminalFontSize: st.terminalFontSize,
+        claudeCommand: st.claudeCommand,
       }),
     },
   ),

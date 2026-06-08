@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useStore, type SessionMeta } from '../state/store'
-import { spawnSession, focusSession } from '../commands/sessions'
+import { spawnSession, spawnClaudeSession, focusSession } from '../commands/sessions'
 import { sessionMenuItems } from '../commands/menus'
 import { openContextMenu, type MenuItem } from '../ui/contextMenuBus'
 import { ACCENTS } from '../theme/themes'
@@ -53,7 +53,7 @@ export function Sidebar(): React.JSX.Element {
       },
       { separator: true },
       { label: 'New terminal here', onClick: () => spawnSession({ kind: 'shell', groupId: gid }) },
-      { label: 'New Claude here', onClick: () => spawnSession({ kind: 'claude', groupId: gid }) },
+      { label: 'New Claude here', onClick: () => spawnClaudeSession({ groupId: gid }) },
       { separator: true },
       {
         label: 'Delete group',
@@ -75,7 +75,7 @@ export function Sidebar(): React.JSX.Element {
   return (
     <aside className="sidebar">
       <div className="sidebar__actions">
-        <button className="sidebar__new" onClick={() => spawnSession({ kind: 'claude' })}>
+        <button className="sidebar__new" onClick={() => spawnClaudeSession()}>
           <SparkIcon />
           <span>New Claude</span>
         </button>

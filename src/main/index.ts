@@ -1,4 +1,5 @@
 import { join } from 'path'
+import { execFile } from 'node:child_process'
 import {
   app,
   BrowserWindow,
@@ -139,6 +140,25 @@ ipcMain.handle(IPC.killTerminal, async (_e, terminalId: string) => {
 
 ipcMain.handle('app:openExternal', async (_e, url: string) => {
   await shell.openExternal(url)
+})
+
+// Resolve whether a command (e.g. "claude") is on the user's interactive-login
+// PATH, so the UI can warn when New Claude would fail. Returns the resolved path
+// or null. The token is restricted to a safe charset before being shell-evaluated.
+ipcMain.handle('app:resolveCommand', async (_e, token: string): Promise<string | null> => {
+  if (!token || !/^[\w./-]+$/.test(token)) return null
+  const shellPath = process.env.SHELL || '/bin/zsh'
+  return new Promise<string | null>((resolve) => {
+    execFile(
+      shellPath,
+      ['-lic', `command -v ${token} 2>/dev/null`],
+      { timeout: 5000 },
+      (_err, stdout) => {
+        const out = (stdout || '').trim()
+        resolve(out || null)
+      },
+    )
+  })
 })
 
 app.whenReady().then(() => {

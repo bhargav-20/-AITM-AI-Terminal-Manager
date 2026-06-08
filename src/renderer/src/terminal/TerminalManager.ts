@@ -31,6 +31,10 @@ interface Entry {
   spawned: boolean
   exited: boolean
   exitCode?: number
+  /** Command to type once the shell produces its first output. */
+  autorun?: string
+  /** Input/control messages queued until the port is wired. */
+  outbox: RendererToPty[]
   // backpressure accounting (approximate, by output char length)
   pending: number
   paused: boolean
@@ -69,6 +73,7 @@ class TerminalManagerImpl {
         fit,
         spawned: false,
         exited: false,
+        outbox: [],
         pending: 0,
         paused: false,
         exitListeners: new Set(),
@@ -119,6 +124,9 @@ class TerminalManagerImpl {
     const entry = this.getOrCreate(id)
     if (entry.spawned) return
     entry.spawned = true
+    // Fired on the terminal's first output (see wirePort) — this guarantees the
+    // shell is alive AND the MessagePort is wired, so the command isn't dropped.
+    entry.autorun = opts.autorun
     const cols = entry.term.cols || 80
     const rows = entry.term.rows || 24
     const req: SpawnTerminalRequest = {
@@ -131,10 +139,6 @@ class TerminalManagerImpl {
       rows,
     }
     await window.atm.spawnTerminal(req)
-    if (opts.autorun) {
-      // pty line discipline buffers this until the shell starts reading.
-      this.send(entry, { type: 'i', data: opts.autorun })
-    }
   }
 
   /** Programmatically send input to a terminal's pty. */
@@ -214,6 +218,11 @@ class TerminalManagerImpl {
             this.send(entry, { type: 'u' })
           }
         })
+        if (entry.autorun) {
+          const cmd = entry.autorun
+          entry.autorun = undefined
+          this.send(entry, { type: 'i', data: cmd })
+        }
       } else if (msg.type === 'x') {
         entry.exited = true
         entry.exitCode = msg.code
@@ -223,6 +232,11 @@ class TerminalManagerImpl {
     }
     port.start()
     entry.term.onData((data) => this.send(entry, { type: 'i', data }))
+    // Flush anything queued before the port was wired (early input, resize).
+    if (entry.outbox.length) {
+      for (const m of entry.outbox) port.postMessage(m)
+      entry.outbox = []
+    }
   }
 
   private enableWebgl(entry: Entry): void {
@@ -245,7 +259,8 @@ class TerminalManagerImpl {
   }
 
   private send(entry: Entry, msg: RendererToPty): void {
-    entry.port?.postMessage(msg)
+    if (entry.port) entry.port.postMessage(msg)
+    else entry.outbox.push(msg)
   }
 }
 

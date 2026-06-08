@@ -13,6 +13,7 @@ const api = {
   spawnTerminal: (req: SpawnTerminalRequest) => ipcRenderer.invoke(IPC.spawnTerminal, req),
   killTerminal: (terminalId: string) => ipcRenderer.invoke(IPC.killTerminal, terminalId),
   openExternal: (url: string) => ipcRenderer.invoke('app:openExternal', url),
+  resolveCommand: (token: string) => ipcRenderer.invoke('app:resolveCommand', token),
   onMenuAction: (cb: (action: string) => void): void => {
     for (const ch of MENU_CHANNELS) ipcRenderer.on(ch, () => cb(ch))
   },

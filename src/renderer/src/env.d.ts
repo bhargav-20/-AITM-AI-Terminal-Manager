@@ -7,6 +7,7 @@ declare global {
       spawnTerminal(req: SpawnTerminalRequest): Promise<SpawnTerminalResult>
       killTerminal(terminalId: string): Promise<void>
       openExternal(url: string): Promise<void>
+      resolveCommand(token: string): Promise<string | null>
       onMenuAction(cb: (action: string) => void): void
     }
   }

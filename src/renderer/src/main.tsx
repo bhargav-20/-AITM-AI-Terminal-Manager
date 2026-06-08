@@ -13,6 +13,7 @@ if (!('atm' in window)) {
     spawnTerminal: async () => ({ terminalId: '', pid: -1 }),
     killTerminal: async () => undefined,
     openExternal: async () => undefined,
+    resolveCommand: async () => null,
     onMenuAction: () => undefined,
   }
 }
