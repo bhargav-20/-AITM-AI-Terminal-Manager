@@ -96,6 +96,7 @@ interface AppState {
   // transient UI (not persisted)
   settingsOpen: boolean
   shortcutsOpen: boolean
+  editingSessionId: string | null
 
   addSession: (s: SessionMeta) => void
   removeSession: (id: string) => void
@@ -120,6 +121,7 @@ interface AppState {
   setNotificationsEnabled: (v: boolean) => void
   setSettingsOpen: (open: boolean) => void
   setShortcutsOpen: (open: boolean) => void
+  setEditingSession: (id: string | null) => void
 }
 
 function groupsRecord(): Record<string, SessionGroup> {
@@ -147,6 +149,7 @@ export const useStore = create<AppState>()(
 
       settingsOpen: false,
       shortcutsOpen: false,
+      editingSessionId: null,
 
       addSession: (s) =>
         set((st) => ({
@@ -260,6 +263,7 @@ export const useStore = create<AppState>()(
       setNotificationsEnabled: (v) => set({ notificationsEnabled: v }),
       setSettingsOpen: (open) => set({ settingsOpen: open }),
       setShortcutsOpen: (open) => set({ shortcutsOpen: open }),
+      setEditingSession: (id) => set({ editingSessionId: id }),
     }),
     {
       name: 'atm-workspace',

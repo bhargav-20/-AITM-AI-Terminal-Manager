@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useClaudeStore } from '../state/claudeStore'
 import { useStore } from '../state/store'
 import { useCorrelationStore } from '../state/correlationStore'
@@ -18,7 +19,12 @@ export function ClaudeSessions(): React.JSX.Element | null {
   const metric = useStore((s) => s.sessionMetric)
   const rates = useStore((s) => s.rates)
   const sessionToTerminal = useCorrelationStore((s) => s.sessionToTerminal)
+  const [expanded, setExpanded] = useState(false)
   if (sessions.length === 0) return null
+
+  const LIMIT = 6
+  const visible = expanded ? sessions : sessions.slice(0, LIMIT)
+  const overflow = sessions.length - LIMIT
 
   return (
     <div className="claude-list">
@@ -26,7 +32,7 @@ export function ClaudeSessions(): React.JSX.Element | null {
         <span>Claude Sessions</span>
         <span className="claude-list__count">{sessions.length}</span>
       </div>
-      {sessions.map((s) => {
+      {visible.map((s) => {
         const ownedTerminal = sessionToTerminal[s.sessionId]
         return (
           <div
@@ -92,6 +98,11 @@ export function ClaudeSessions(): React.JSX.Element | null {
           </div>
         )
       })}
+      {overflow > 0 && (
+        <button className="claude-list__more" onClick={() => setExpanded((v) => !v)}>
+          {expanded ? 'Show less' : `View ${overflow} more`}
+        </button>
+      )}
     </div>
   )
 }

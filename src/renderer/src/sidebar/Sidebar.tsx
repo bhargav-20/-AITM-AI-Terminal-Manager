@@ -1,11 +1,12 @@
 import { useState } from 'react'
 import { useStore, type SessionMeta } from '../state/store'
-import { spawnSession, spawnClaudeSession, focusSession } from '../commands/sessions'
+import { spawnSession, spawnClaudeSession, focusSession, closeSession } from '../commands/sessions'
 import { ClaudeSessions } from './ClaudeSessions'
 import { sessionMenuItems } from '../commands/menus'
 import { openContextMenu, type MenuItem } from '../ui/contextMenuBus'
+import { toast } from '../ui/toastBus'
 import { ACCENTS } from '../theme/themes'
-import { ChevronIcon, PlusIcon, PinFilledIcon, SparkIcon } from '../ui/icons'
+import { ChevronIcon, PlusIcon, PinFilledIcon, SparkIcon, CloseIcon } from '../ui/icons'
 
 const DRAG_TYPE = 'application/atm-session'
 
@@ -27,6 +28,9 @@ export function Sidebar(): React.JSX.Element {
   const setGroupColor = useStore((s) => s.setGroupColor)
   const removeGroup = useStore((s) => s.removeGroup)
   const createGroup = useStore((s) => s.createGroup)
+  const updateSession = useStore((s) => s.updateSession)
+  const editingSessionId = useStore((s) => s.editingSessionId)
+  const setEditingSession = useStore((s) => s.setEditingSession)
 
   const [editingGroup, setEditingGroup] = useState<string | null>(null)
   const [dragOver, setDragOver] = useState<string | null>(null)
@@ -155,35 +159,76 @@ export function Sidebar(): React.JSX.Element {
 
               {!g.collapsed && (
                 <div className="grp__items">
-                  {items.map((s) => (
-                    <div
-                      key={s.id}
-                      className={`row${activeId === s.id ? ' row--active' : ''}${
-                        dragging === s.id ? ' row--dragging' : ''
-                      }`}
-                      draggable
-                      onDragStart={(e) => {
-                        e.dataTransfer.setData(DRAG_TYPE, s.id)
-                        e.dataTransfer.effectAllowed = 'move'
-                        setDragging(s.id)
-                      }}
-                      onDragEnd={() => {
-                        setDragging(null)
-                        setDragOver(null)
-                      }}
-                      onClick={() => focusSession(s.id)}
-                      onContextMenu={(e) => openContextMenu(e, sessionMenuItems(s.id))}
-                      title={s.cwd || '~'}
-                    >
-                      <span
-                        className={`row__status row__status--${s.status}`}
-                        style={s.status !== 'exited' ? { background: g.color } : undefined}
-                      />
-                      <span className="row__title">{s.title}</span>
-                      {s.pinned && <PinFilledIcon size={10} className="row__pin" />}
-                      <span className="row__cwd">{basename(s.cwd)}</span>
-                    </div>
-                  ))}
+                  {items.map((s) => {
+                    const editing = editingSessionId === s.id
+                    const commit = (value: string): void => {
+                      const v = value.trim()
+                      if (v) updateSession(s.id, { title: v })
+                      setEditingSession(null)
+                    }
+                    return (
+                      <div
+                        key={s.id}
+                        className={`row${activeId === s.id ? ' row--active' : ''}${
+                          dragging === s.id ? ' row--dragging' : ''
+                        }`}
+                        draggable={!editing}
+                        onDragStart={(e) => {
+                          e.dataTransfer.setData(DRAG_TYPE, s.id)
+                          e.dataTransfer.effectAllowed = 'move'
+                          setDragging(s.id)
+                        }}
+                        onDragEnd={() => {
+                          setDragging(null)
+                          setDragOver(null)
+                        }}
+                        onClick={() => focusSession(s.id)}
+                        onContextMenu={(e) => openContextMenu(e, sessionMenuItems(s.id))}
+                        title={s.cwd || '~'}
+                      >
+                        <span
+                          className={`row__status row__status--${s.status}`}
+                          style={s.status !== 'exited' ? { background: g.color } : undefined}
+                        />
+                        {editing ? (
+                          <input
+                            className="row__rename"
+                            autoFocus
+                            defaultValue={s.title}
+                            onFocus={(e) => e.target.select()}
+                            onClick={(e) => e.stopPropagation()}
+                            onBlur={(e) => commit(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') commit((e.target as HTMLInputElement).value)
+                              else if (e.key === 'Escape') setEditingSession(null)
+                            }}
+                          />
+                        ) : (
+                          <span
+                            className="row__title"
+                            onDoubleClick={(e) => {
+                              e.stopPropagation()
+                              setEditingSession(s.id)
+                            }}
+                          >
+                            {s.title}
+                          </span>
+                        )}
+                        {s.pinned && <PinFilledIcon size={10} className="row__pin" />}
+                        {!editing && <span className="row__cwd">{basename(s.cwd)}</span>}
+                        <button
+                          className="row__close"
+                          title="Close"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            if (!closeSession(s.id)) toast('Tab is pinned — unpin to close')
+                          }}
+                        >
+                          <CloseIcon size={12} />
+                        </button>
+                      </div>
+                    )
+                  })}
                   {items.length === 0 && <div className="grp__empty">Drop sessions here</div>}
                 </div>
               )}

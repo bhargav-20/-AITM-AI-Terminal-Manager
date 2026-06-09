@@ -12,6 +12,10 @@ export function sessionMenuItems(id: string): MenuItem[] {
 
   return [
     {
+      label: 'Rename',
+      onClick: () => useStore.getState().setEditingSession(id),
+    },
+    {
       label: s.pinned ? 'Unpin' : 'Pin',
       onClick: () => useStore.getState().togglePin(id),
     },
