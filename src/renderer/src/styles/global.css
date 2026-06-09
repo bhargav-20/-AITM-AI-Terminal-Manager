@@ -238,11 +238,13 @@ button {
 
 /* ---- Session rows ------------------------------------------------------ */
 .row {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 8px;
   width: 100%;
-  padding: 6px 8px;
+  height: 30px; /* fixed so hover actions never shift the row's height */
+  padding: 0 8px;
   background: none;
   border: none;
   border-radius: 6px;
@@ -332,12 +334,27 @@ button {
 }
 
 .row:hover .row__cwd {
-  display: none;
+  visibility: hidden;
 }
 
-.row__close {
-  display: none;
-  flex: 0 0 auto;
+/* Absolute + visibility-toggled so showing actions on hover causes no reflow. */
+.row__actions {
+  position: absolute;
+  right: 6px;
+  top: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  visibility: hidden;
+}
+
+.row:hover .row__actions {
+  visibility: visible;
+}
+
+.row__actbtn {
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   width: 20px;
@@ -349,11 +366,12 @@ button {
   color: var(--text-faint);
 }
 
-.row:hover .row__close {
-  display: inline-flex;
+.row__actbtn:hover {
+  background: var(--bg-elev-2);
+  color: var(--text);
 }
 
-.row__close:hover {
+.row__actbtn--danger:hover {
   background: var(--bg-elev-2);
   color: #ff8585;
 }

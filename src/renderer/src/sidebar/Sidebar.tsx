@@ -6,7 +6,7 @@ import { sessionMenuItems } from '../commands/menus'
 import { openContextMenu, type MenuItem } from '../ui/contextMenuBus'
 import { toast } from '../ui/toastBus'
 import { ACCENTS } from '../theme/themes'
-import { ChevronIcon, PlusIcon, PinFilledIcon, SparkIcon, CloseIcon } from '../ui/icons'
+import { ChevronIcon, PlusIcon, PinFilledIcon, SparkIcon, CloseIcon, PencilIcon } from '../ui/icons'
 
 const DRAG_TYPE = 'application/atm-session'
 
@@ -216,16 +216,30 @@ export function Sidebar(): React.JSX.Element {
                         )}
                         {s.pinned && <PinFilledIcon size={10} className="row__pin" />}
                         {!editing && <span className="row__cwd">{basename(s.cwd)}</span>}
-                        <button
-                          className="row__close"
-                          title="Close"
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            if (!closeSession(s.id)) toast('Tab is pinned — unpin to close')
-                          }}
-                        >
-                          <CloseIcon size={12} />
-                        </button>
+                        {!editing && (
+                          <div className="row__actions">
+                            <button
+                              className="row__actbtn"
+                              title="Rename"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                setEditingSession(s.id)
+                              }}
+                            >
+                              <PencilIcon size={12} />
+                            </button>
+                            <button
+                              className="row__actbtn row__actbtn--danger"
+                              title="Close"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                if (!closeSession(s.id)) toast('Tab is pinned — unpin to close')
+                              }}
+                            >
+                              <CloseIcon size={12} />
+                            </button>
+                          </div>
+                        )}
                       </div>
                     )
                   })}

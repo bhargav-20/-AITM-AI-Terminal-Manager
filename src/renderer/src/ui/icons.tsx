@@ -52,6 +52,13 @@ export const SparkIcon = ({ size = 13, className }: IconProps): React.JSX.Elemen
   </svg>
 )
 
+export const PencilIcon = ({ size = 12, className }: IconProps): React.JSX.Element => (
+  <svg {...base(size)} className={className}>
+    <path d="M3 13l.5-2.6 7-7 2.1 2.1-7 7L3 13Z" />
+    <path d="M10 4l2.1 2.1" />
+  </svg>
+)
+
 export const PlayIcon = ({ size = 12, className }: IconProps): React.JSX.Element => (
   <svg {...base(size)} className={className} fill="currentColor" stroke="none">
     <path d="M5 3.4 12 8l-7 4.6V3.4Z" />
